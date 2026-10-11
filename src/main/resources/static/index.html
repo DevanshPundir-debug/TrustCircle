@@ -1,0 +1,710 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trust Circle — AI-Powered Trusted Social Activity Platform</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+
+    <!-- Top Navigation Bar -->
+    <header class="navbar">
+        <div class="nav-container">
+            <a href="#" class="brand" onclick="App.switchTab('activities'); return false;">
+                <div class="brand-icon">🛡️</div>
+                <div>
+                    <span>Trust Circle</span>
+                    <span class="brand-badge">AI Verified</span>
+                </div>
+            </a>
+
+            <nav class="nav-tabs">
+                <button class="nav-btn active" data-tab="activities">
+                    <span>🗓️</span> Activities
+                </button>
+                <button class="nav-btn" data-tab="scheduled">
+                    <span>📌</span> My Schedule
+                </button>
+                <button class="nav-btn" data-tab="matches">
+                    <span>🤖</span> AI Smart Matches
+                </button>
+                <button class="nav-btn" data-tab="verify">
+                    <span>📋</span> Verification Survey
+                </button>
+                <button class="nav-btn" data-tab="trust">
+                    <span>📊</span> Trust Scorecard
+                </button>
+                <button class="nav-btn" data-tab="safety">
+                    <span>🚨</span> AI Safety Layer
+                </button>
+            </nav>
+
+            <div class="nav-right" style="position: relative;">
+                <!-- Current User Badge with Logout -->
+                <div id="navUserPill" class="user-pill" style="cursor: pointer;" onclick="App.toggleUserMenu()">
+                    <div id="navUserAvatar" class="user-avatar">A</div>
+                    <span id="navUserName" style="font-weight: 600;">Member</span>
+                    <span id="navUserTrust" class="trust-badge-pill tier-bronze">BRONZE 50</span>
+                </div>
+                <div id="userMenu" style="display: none; position: absolute; top: calc(100% + 6px); right: 0; background: white; border: 1px solid #e2e8f0; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.12); z-index: 1000; min-width: 170px; overflow: hidden;">
+                    <button onclick="App.switchTab('trust'); App.toggleUserMenu();" style="width: 100%; text-align: left; padding: 10px 15px; border: none; background: none; cursor: pointer; font-size: 0.9rem;">👤 View Profile</button>
+                    <button onclick="App.logout()" style="width: 100%; text-align: left; padding: 10px 15px; border: none; border-top: 1px solid #e2e8f0; background: none; cursor: pointer; font-size: 0.9rem; color: #ef4444;">🚪 Logout</button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- ============================================================
+         AUTH GATE — shown until the visitor signs in or signs up
+         ============================================================ -->
+    <div id="authGate" class="auth-gate">
+        <div class="auth-card">
+            <div class="auth-brand">
+                <div class="brand-icon">🛡️</div>
+                <h1>Trust Circle</h1>
+                <p>Find people online. Trust them offline.</p>
+            </div>
+
+            <div class="auth-switch">
+                <button id="authTabLogin" class="auth-switch-btn active" onclick="App.showAuthMode('login')">Sign In</button>
+                <button id="authTabSignup" class="auth-switch-btn" onclick="App.showAuthMode('signup')">Create Account</button>
+            </div>
+
+            <!-- Sign In -->
+            <form id="loginForm" class="auth-form" onsubmit="App.handleLogin(event)">
+                <label>Email Address</label>
+                <input type="email" id="login_email" class="form-input" placeholder="you@example.com" required autocomplete="email">
+
+                <label>Password</label>
+                <input type="password" id="login_password" class="form-input" placeholder="Your password" required autocomplete="current-password">
+
+                <button type="submit" id="loginSubmitBtn" class="btn-primary auth-submit">Sign In</button>
+                <p class="auth-hint">New here? <a href="#" onclick="App.showAuthMode('signup'); return false;">Create an account</a></p>
+            </form>
+
+            <!-- Create Account -->
+            <form id="signupForm" class="auth-form" style="display: none;" onsubmit="App.handleSignup(event)">
+                <label>Full Name</label>
+                <input type="text" id="signup_name" class="form-input" placeholder="e.g. Devansh Sharma" required autocomplete="name">
+
+                <label>Email Address</label>
+                <input type="email" id="signup_email" class="form-input" placeholder="you@example.com" required autocomplete="email">
+
+                <label>Phone Number</label>
+                <input type="tel" id="signup_phone" class="form-input" placeholder="e.g. +91 98765 43210" autocomplete="tel">
+
+                <label>Password</label>
+                <input type="password" id="signup_password" class="form-input" placeholder="Min. 6 characters" required minlength="6" autocomplete="new-password">
+
+                <button type="submit" id="signupSubmitBtn" class="btn-primary auth-submit">Create Account</button>
+                <p class="auth-hint">
+                    After signing up you'll complete a short identity &amp; location
+                    verification survey to unlock activities.
+                </p>
+                <p class="auth-hint">Already a member? <a href="#" onclick="App.showAuthMode('login'); return false;">Sign in</a></p>
+            </form>
+
+            <div id="authError" class="auth-error" style="display: none;"></div>
+        </div>
+    </div>
+
+    <main class="main-content">
+
+        <!-- Hero Platform Banner -->
+        <section class="hero-banner">
+            <div class="hero-content">
+                <h1>Find People Online. Trust Them Offline.</h1>
+                <p>
+                    Existing social apps make it easy to meet anyone, but hard to trust them in person. 
+                    Trust Circle solves offline safety through <strong>Biometric & GPS Verification</strong>, 
+                    <strong>AI Multi-Vector Compatibility</strong>, and a <strong>Dynamic Trust Score</strong>.
+                </p>
+                <div class="hero-pillars">
+                    <div class="pillar-item"><span>📍</span> GPS Identity Verification</div>
+                    <div class="pillar-item"><span>🤖</span> AI Smart Companion Matching</div>
+                    <div class="pillar-item"><span>📊</span> Dynamic 0-100 Trust Score</div>
+                    <div class="pillar-item"><span>🛡️</span> Real-time AI Safety Sentinel</div>
+                </div>
+            </div>
+            <div>
+                <button class="btn-primary" style="background: white; color: var(--primary); font-size: 1rem; padding: 0.85rem 1.75rem;" onclick="Activities.openCreateModal()">
+                    + Host An Activity
+                </button>
+            </div>
+        </section>
+
+        <!-- ========================================================
+             TAB 1: ACTIVITIES EXPLORER & FEED
+             ======================================================== -->
+        <div id="view_activities" class="tab-view">
+            <div class="activity-filter-bar">
+                <div class="category-chips">
+                    <button class="cat-chip active" data-cat="ALL">All Activities</button>
+                    <button class="cat-chip" data-cat="SPORTS">🏸 Sports & Fitness</button>
+                    <button class="cat-chip" data-cat="STUDY">📚 Study & Coding</button>
+                    <button class="cat-chip" data-cat="TRAVEL">🥾 Travel & Hiking</button>
+                    <button class="cat-chip" data-cat="SOCIAL">☕ Social & Games</button>
+                    <button class="cat-chip" data-cat="EVENTS">🎉 Events & Music</button>
+                </div>
+
+                <div>
+                    <button class="btn-primary" onclick="Activities.openCreateModal()">
+                        <span>+</span> Create New Activity
+                    </button>
+                </div>
+            </div>
+
+            <div id="activitiesGrid" class="activities-grid">
+                <!-- Populated dynamically via JS -->
+            </div>
+        </div>
+
+        <!-- ========================================================
+             TAB 2: SCHEDULED ACTIVITIES & MY PARTICIPATIONS
+             ======================================================== -->
+        <div id="view_scheduled" class="tab-view" style="display: none;">
+            <div style="display: flex; gap: 0.75rem; margin-bottom: 1.5rem; flex-wrap: wrap;">
+                <button data-schedule-filter="hosted" onclick="Scheduled.switchFilter('hosted')" style="padding: 0.5rem 1.2rem; border: none; background: #f1f5f9; border-radius: 20px; cursor: pointer; font-weight: 600;">🏠 I'm Hosting</button>
+                <button data-schedule-filter="joined" onclick="Scheduled.switchFilter('joined')" style="padding: 0.5rem 1.2rem; border: none; background: #f1f5f9; border-radius: 20px; cursor: pointer; font-weight: 600;">✅ I'm Joining</button>
+                <button data-schedule-filter="requests" onclick="Scheduled.switchFilter('requests')" style="padding: 0.5rem 1.2rem; border: none; background: #f1f5f9; border-radius: 20px; cursor: pointer; font-weight: 600;">📨 Join Requests</button>
+            </div>
+
+            <!-- Hosted Activities -->
+            <div id="scheduledHostedSection" style="background: white; border-radius: var(--radius-md); padding: 1.5rem; border: 1px solid var(--border); margin-bottom: 1.5rem;">
+                <h3 style="margin-top: 0;">🏠 Activities I'm Hosting</h3>
+                <div id="hostedActivitiesList" style="display: grid; gap: 1rem;">
+                    <p style="color: #94a3b8;">Loading your hosted activities...</p>
+                </div>
+            </div>
+
+            <!-- Joined Activities -->
+            <div id="scheduledJoinedSection" style="background: white; border-radius: var(--radius-md); padding: 1.5rem; border: 1px solid var(--border); margin-bottom: 1.5rem; display: none;">
+                <h3 style="margin-top: 0;">✅ Activities I'm Joining</h3>
+                <div id="joinedActivitiesList" style="display: grid; gap: 1rem;">
+                    <p style="color: #94a3b8;">Loading your joined activities...</p>
+                </div>
+            </div>
+
+            <!-- Join Requests -->
+            <div id="scheduledRequestsSection" style="background: white; border-radius: var(--radius-md); padding: 1.5rem; border: 1px solid var(--border); margin-bottom: 1.5rem; display: none;">
+                <h3 style="margin-top: 0;">📨 Join Requests for Your Activities</h3>
+                <div id="requestsList" style="display: grid; gap: 1rem;">
+                    <p style="color: #94a3b8;">No pending join requests...</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- ========================================================
+             TAB 3: AI SMART MATCHING EXPLORER
+             ======================================================== -->
+        <div id="view_matches" class="tab-view" style="display: none;">
+            <div style="background: white; border-radius: var(--radius-md); padding: 1.5rem 2rem; border: 1px solid var(--border); margin-bottom: 1.5rem;">
+                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+                    <div>
+                        <h2 style="font-size: 1.4rem; font-weight: 800; color: #1e1b4b; display: flex; align-items: center; gap: 0.5rem;">
+                            <span>🧠</span> AI Companion Matchmaker
+                        </h2>
+                        <p style="color: #64748b; font-size: 0.9rem; margin-top: 2px;">
+                            Matches are computed using multi-dimensional cosine vectors across shared interests, verified GPS proximity, schedule overlap, budget tier, and credibility score.
+                        </p>
+                    </div>
+                    <button class="btn-secondary" onclick="Matchmaker.loadMatches()">
+                        🔄 Re-calibrate Vectors
+                    </button>
+                </div>
+            </div>
+
+            <div id="matchesContainer" class="matches-container">
+                <!-- Populated dynamically via JS -->
+            </div>
+        </div>
+
+        <!-- ========================================================
+             TAB 3: GOOGLE-FORMS STYLE VERIFICATION WIZARD
+             ======================================================== -->
+        <div id="view_verify" class="tab-view" style="display: none;">
+            <div class="google-form-container">
+                
+                <!-- Google Forms Header Card -->
+                <div class="form-header-card">
+                    <h2>Trust Circle — Member Identity & Safety Verification</h2>
+                    <p>
+                        Signed in as <strong id="vf_accountName">your account</strong>. This short survey verifies your
+                        physical presence via browser GPS sensors and calibrates your AI matching vectors.
+                    </p>
+
+                    <div class="wizard-progress">
+                        <div id="step_ind_1" class="step-indicator active"></div>
+                        <div id="step_ind_2" class="step-indicator"></div>
+                        <div id="step_ind_3" class="step-indicator"></div>
+                        <div id="step_ind_4" class="step-indicator"></div>
+                    </div>
+                </div>
+
+                <!-- Step 1: Location Verification & GPS Check -->
+                <div id="step_section_1" class="form-section-card">
+                    <div class="form-question-title">
+                        1. Where Do You Live? (Real-time Location Verification) <span class="required">*</span>
+                    </div>
+                    <div class="form-question-desc">
+                        To prevent remote bot spam and verify authentic local presence, we compare your claimed neighborhood with your device's browser GPS coordinates.
+                    </div>
+
+                    <div style="margin-bottom: 1rem;">
+                        <label style="font-size: 0.85rem; font-weight: 600; color: #334155;">Claimed City / Area</label>
+                        <input type="text" id="vf_city" class="form-input" placeholder="e.g. San Francisco, CA" value="San Francisco">
+                    </div>
+
+                    <!-- Geolocation Verification Trigger -->
+                    <div class="geo-verify-box">
+                        <div style="font-size: 2.2rem; margin-bottom: 0.5rem;">📍</div>
+                        <h4 style="font-size: 1.05rem; font-weight: 700; color: #1e1b4b; margin-bottom: 0.35rem;">
+                            Verify Physical Device Coordinates
+                        </h4>
+                        <p style="font-size: 0.85rem; color: #64748b; max-width: 480px; margin: 0 auto 1.2rem;">
+                            Click below to trigger browser location permission. Our AI Safety layer validates high-accuracy GPS telemetry to award the <strong>"GPS Location Verified"</strong> badge.
+                        </p>
+
+                        <button type="button" id="detectLocationBtn" class="geo-btn">
+                            <span>🛰️</span> Detect & Verify My Current Location
+                        </button>
+
+                        <div id="geoStatusBox" style="display: none;"></div>
+                        <div id="geoTelemetryBox" class="geo-telemetry" style="display: none;"></div>
+                    </div>
+
+                    <div style="display: flex; justify-content: flex-end; margin-top: 1.75rem;">
+                        <button class="btn-primary" onclick="VerificationForm.goToStep(2)">Next: Activity Passions →</button>
+                    </div>
+                </div>
+
+                <!-- Step 2: Relatable Activity Passions & Habits -->
+                <div id="step_section_2" class="form-section-card" style="display: none;">
+                    <div class="form-question-title">
+                        2. What Gets You Out of the House? <span class="required">*</span>
+                    </div>
+                    <div class="form-question-desc">Our AI Smart Matching Engine uses these questions to pair you with like-minded companions.</div>
+
+                    <div style="margin-bottom: 1.5rem;">
+                        <label style="font-size: 0.9rem; font-weight: 600; color: #1e293b; display: block; margin-bottom: 0.6rem;">
+                            Short bio — what do companions need to know about you?
+                        </label>
+                        <textarea id="vf_bio" class="form-input" rows="2" placeholder="Tell potential companions what you enjoy doing in your spare time..."></textarea>
+                    </div>
+
+                    <!-- Question A: Weekend Vibe -->
+                    <div style="margin-bottom: 1.5rem;">
+                        <label style="font-size: 0.9rem; font-weight: 600; color: #1e293b; display: block; margin-bottom: 0.6rem;">
+                            What is your ideal weekend activity vibe?
+                        </label>
+                        <div class="chip-group">
+                            <label class="chip-option">
+                                <input type="radio" name="vf_vibe" value="Active & Outdoorsy" checked>
+                                <span class="chip-box">🏃 Active & Outdoorsy</span>
+                            </label>
+                            <label class="chip-option">
+                                <input type="radio" name="vf_vibe" value="Laser-Focused Study">
+                                <span class="chip-box">📚 Focused Study & Coding</span>
+                            </label>
+                            <label class="chip-option">
+                                <input type="radio" name="vf_vibe" value="Chill & Casual">
+                                <span class="chip-box">☕ Chill Coffee & Conversation</span>
+                            </label>
+                            <label class="chip-option">
+                                <input type="radio" name="vf_vibe" value="Board Games & Strategy">
+                                <span class="chip-box">🎲 Board Games & Strategy</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Question B: Specific Activities -->
+                    <div style="margin-bottom: 1.5rem;">
+                        <label style="font-size: 0.9rem; font-weight: 600; color: #1e293b; display: block; margin-bottom: 0.6rem;">
+                            Select all activities you'd genuinely love to do in person:
+                        </label>
+                        <div class="chip-group">
+                            <label class="chip-option"><input type="checkbox" name="vf_interests" value="Badminton" checked><span class="chip-box">🏸 Badminton</span></label>
+                            <label class="chip-option"><input type="checkbox" name="vf_interests" value="Coding" checked><span class="chip-box">💻 Coding / Hackathons</span></label>
+                            <label class="chip-option"><input type="checkbox" name="vf_interests" value="Hiking" checked><span class="chip-box">🥾 Hiking & Trails</span></label>
+                            <label class="chip-option"><input type="checkbox" name="vf_interests" value="Tennis"><span class="chip-box">🎾 Tennis</span></label>
+                            <label class="chip-option"><input type="checkbox" name="vf_interests" value="Board Games"><span class="chip-box">♟️ Board Games</span></label>
+                            <label class="chip-option"><input type="checkbox" name="vf_interests" value="Photography"><span class="chip-box">📸 Photography</span></label>
+                            <label class="chip-option"><input type="checkbox" name="vf_interests" value="Travel"><span class="chip-box">✈️ Weekend Roadtrips</span></label>
+                            <label class="chip-option"><input type="checkbox" name="vf_interests" value="Coffee"><span class="chip-box">☕ Specialty Coffee</span></label>
+                        </div>
+                    </div>
+
+                    <!-- Question C: Availability -->
+                    <div style="margin-bottom: 1.5rem;">
+                        <label style="font-size: 0.9rem; font-weight: 600; color: #1e293b; display: block; margin-bottom: 0.6rem;">
+                            When are you typically free for social activities?
+                        </label>
+                        <div class="chip-group">
+                            <label class="chip-option"><input type="radio" name="vf_avail" value="WEEKENDS" checked><span class="chip-box">Saturday & Sunday</span></label>
+                            <label class="chip-option"><input type="radio" name="vf_avail" value="WEEKDAY_EVENINGS"><span class="chip-box">Weekday Evenings (Post-work)</span></label>
+                            <label class="chip-option"><input type="radio" name="vf_avail" value="MORNINGS"><span class="chip-box">Early Mornings (6am-9am)</span></label>
+                            <label class="chip-option"><input type="radio" name="vf_avail" value="FLEXIBLE"><span class="chip-box">Completely Flexible</span></label>
+                        </div>
+                    </div>
+
+                    <!-- Question D: Budget tier -->
+                    <div style="margin-bottom: 1rem;">
+                        <label style="font-size: 0.9rem; font-weight: 600; color: #1e293b; display: block; margin-bottom: 0.6rem;">
+                            Typical activity budget preference:
+                        </label>
+                        <div class="chip-group">
+                            <label class="chip-option"><input type="radio" name="vf_budget" value="FREE"><span class="chip-box">Free Only (Parks, trails, study)</span></label>
+                            <label class="chip-option"><input type="radio" name="vf_budget" value="MODERATE" checked><span class="chip-box">Moderate ($10 - $30 for courts/food)</span></label>
+                            <label class="chip-option"><input type="radio" name="vf_budget" value="FLEXIBLE"><span class="chip-box">Flexible ($30+ for events/travel)</span></label>
+                        </div>
+                    </div>
+
+                    <div style="display: flex; justify-content: space-between; margin-top: 1.75rem;">
+                        <button class="btn-secondary" onclick="VerificationForm.goToStep(1)">← Back</button>
+                        <button class="btn-primary" onclick="VerificationForm.goToStep(3)">Next: Safety Pact →</button>
+                    </div>
+                </div>
+
+                <!-- Step 3: The Offline Safety Pact -->
+                <div id="step_section_3" class="form-section-card" style="display: none;">
+                    <div class="form-question-title">
+                        3. The Trust Circle Community Safety Pact <span class="required">*</span>
+                    </div>
+                    <div class="form-question-desc">
+                        Our platform is built on real-world trust. Every verified member digitally signs this pact before accessing offline circles.
+                    </div>
+
+                    <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 1.25rem; font-size: 0.9rem; color: #334155; line-height: 1.7; margin-bottom: 1.25rem;">
+                        <div>✅ <strong>1. Genuine Real-World Identity:</strong> I confirm that the details provided represent my authentic self.</div>
+                        <div>✅ <strong>2. Punctuality & Respect:</strong> I will arrive on time for scheduled activities or give at least 3 hours notice if plans change.</div>
+                        <div>✅ <strong>3. Zero Tolerance for Harassment:</strong> Every meetup takes place in public, safe spaces. Unsolicited commercial pitches or misconduct result in permanent suspension.</div>
+                        <div>✅ <strong>4. Peer Review Accountability:</strong> I agree to participate in mutual post-activity peer reviews that dynamically calibrate our trust scores.</div>
+                    </div>
+
+                    <label style="display: flex; align-items: flex-start; gap: 0.6rem; cursor: pointer;">
+                        <input type="checkbox" id="vf_safetyPact" checked style="margin-top: 4px; width: 18px; height: 18px; accent-color: #673ab7;">
+                        <span style="font-size: 0.9rem; font-weight: 600; color: #1e1b4b;">
+                            I solemnly agree to the Trust Circle Safety Pact and verify that my identity is genuine.
+                        </span>
+                    </label>
+
+                    <div style="display: flex; justify-content: space-between; margin-top: 1.75rem;">
+                        <button class="btn-secondary" onclick="VerificationForm.goToStep(2)">← Back</button>
+                        <button id="vf_submitBtn" class="btn-primary" style="background: #673ab7;" onclick="VerificationForm.submitForm()">
+                            ✨ Complete Verification & Compute Trust Score
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Step 4: Success & Initial Trust Score Certificate -->
+                <div id="step_section_4" class="form-section-card" style="display: none; text-align: center; padding: 3rem 2rem;">
+                    <div style="font-size: 3.5rem; margin-bottom: 0.75rem;">🎉</div>
+                    <h2 style="font-size: 1.8rem; font-weight: 800; color: #065f46; margin-bottom: 0.5rem;">
+                        Identity & Location Verified!
+                    </h2>
+                    <p style="color: #64748b; font-size: 0.95rem; max-width: 500px; margin: 0 auto 1.5rem;">
+                        Your answers and device coordinates have been authenticated by the AI Safety layer. 
+                        Your account is now activated with an initial credibility rating.
+                    </p>
+
+                    <div style="display: inline-block; background: #f0fdf4; border: 2px solid #86efac; border-radius: 16px; padding: 1.5rem 2.5rem; margin-bottom: 1.5rem;">
+                        <div style="font-size: 0.8rem; font-weight: 700; color: #166534; text-transform: uppercase; letter-spacing: 0.05em;">Initial Dynamic Trust Score</div>
+                        <div id="vf_resultScore" style="font-size: 3.2rem; font-weight: 800; color: #15803d; line-height: 1.1;">70</div>
+                        <div id="vf_resultTier" style="font-size: 1rem; font-weight: 700; color: #166534;">SILVER TIER</div>
+                        <div id="vf_resultBadges" style="font-size: 0.8rem; color: #15803d; margin-top: 6px;">Location Verified, Verified Explorer</div>
+                    </div>
+
+                    <div>
+                        <button class="btn-primary" style="padding: 0.85rem 2rem; font-size: 1rem;" onclick="App.switchTab('activities')">
+                            🚀 Explore Real-World Activities
+                        </button>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- ========================================================
+             TAB 4: DYNAMIC TRUST SCORECARD
+             ======================================================== -->
+        <div id="view_trust" class="tab-view" style="display: none;">
+            <div id="trustContent">
+                <!-- Populated dynamically via trust.js -->
+            </div>
+        </div>
+
+        <!-- ========================================================
+             TAB 5: AI SAFETY MONITORING LAYER
+             ======================================================== -->
+        <div id="view_safety" class="tab-view" style="display: none;">
+            <!-- Safety Status Shield -->
+            <div class="safety-header">
+                <div class="safety-status-shield">
+                    <div class="shield-icon">🛡️</div>
+                    <div>
+                        <h3 style="font-size: 1.15rem; font-weight: 800; color: #065f46;">AI Safety & Anomaly Sentinel: ACTIVE</h3>
+                        <p style="font-size: 0.85rem; color: #64748b;">
+                            Real-time background monitor inspecting GPS spoofing, bot velocity, phishing links, and peer grievances.
+                        </p>
+                    </div>
+                </div>
+                <div>
+                    <span style="font-size: 0.85rem; background: #ecfdf5; color: #065f46; font-weight: 700; padding: 6px 14px; border-radius: 9999px; border: 1px solid #a7f3d0;">
+                        ● Platform Integrity: 99.8%
+                    </span>
+                </div>
+            </div>
+
+            <div style="margin-bottom: 1rem; display: flex; justify-content: space-between; align-items: center;">
+                <h3 style="font-size: 1.1rem; font-weight: 700; color: #1e293b;">
+                    Live Anomaly Detection & Incident Log
+                </h3>
+                <button class="btn-secondary" style="font-size: 0.85rem; padding: 0.4rem 0.8rem;" onclick="Safety.loadAlerts()">
+                    🔄 Refresh Telemetry
+                </button>
+            </div>
+
+            <div id="safetyAlertsList">
+                <!-- Populated dynamically via safety.js -->
+            </div>
+        </div>
+
+    </main>
+
+    <!-- ========================================================
+         MODALS
+         ======================================================== -->
+
+    <!-- Modal 1: Create Activity -->
+    <div id="createActivityModal" class="modal-overlay">
+        <div class="modal-box">
+            <button class="modal-close-btn" onclick="Activities.closeCreateModal()">✕</button>
+            <h3 style="font-size: 1.3rem; font-weight: 800; color: #1e1b4b; margin-bottom: 0.5rem;">Host a Real-World Activity</h3>
+            <p style="font-size: 0.85rem; color: #64748b; margin-bottom: 1.25rem;">
+                All created activities are scanned in real-time by the AI Safety layer for spam and scam signals.
+            </p>
+
+            <form id="createActivityForm" onsubmit="Activities.handleCreateSubmit(event)">
+                <div style="display: flex; flex-direction: column; gap: 0.9rem;">
+                    <div>
+                        <label style="font-size: 0.85rem; font-weight: 600;">Activity Title *</label>
+                        <input type="text" id="act_title" class="form-input" placeholder="e.g. Friendly 4v4 Football on Turf" required>
+                    </div>
+                    <div>
+                        <label style="font-size: 0.85rem; font-weight: 600;">Category *</label>
+                        <select id="act_cat" class="form-input" required>
+                            <option value="SPORTS">🏸 Sports & Fitness</option>
+                            <option value="STUDY">📚 Study & Coding</option>
+                            <option value="TRAVEL">🥾 Travel & Hiking</option>
+                            <option value="SOCIAL" selected>☕ Social Gatherings</option>
+                            <option value="EVENTS">🎉 Events & Shows</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label style="font-size: 0.85rem; font-weight: 600;">Description *</label>
+                        <textarea id="act_desc" class="form-input" rows="3" placeholder="What to expect, what gear to bring, skill level, and agenda..." required></textarea>
+                    </div>
+                    <div>
+                        <label style="font-size: 0.85rem; font-weight: 600;">Meeting Venue / Location *</label>
+                        <input type="text" id="act_venue" class="form-input" placeholder="e.g. Central Park Tennis Court #4" required>
+                    </div>
+                    <div>
+                        <label style="font-size: 0.85rem; font-weight: 600;">Date &amp; Time *</label>
+                        <input type="datetime-local" id="act_date" class="form-input" required>
+                    </div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem;">
+                        <div>
+                            <label style="font-size: 0.85rem; font-weight: 600;">Min. Trust Score Required</label>
+                            <input type="number" id="act_minTrust" class="form-input" min="30" max="95" value="60" required>
+                        </div>
+                        <div>
+                            <label style="font-size: 0.85rem; font-weight: 600;">Max Participants</label>
+                            <input type="number" id="act_maxPart" class="form-input" min="2" max="25" value="4" required>
+                        </div>
+                    </div>
+                    <div>
+                        <label style="font-size: 0.85rem; font-weight: 600;">Estimated Budget</label>
+                        <select id="act_budget" class="form-input">
+                            <option value="FREE">Free (No cost)</option>
+                            <option value="LOW" selected>Low ($5 - $15)</option>
+                            <option value="MEDIUM">Medium ($15 - $40)</option>
+                            <option value="HIGH">High ($40+)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div style="display: flex; justify-content: flex-end; gap: 0.75rem; margin-top: 1.5rem;">
+                    <button type="button" class="btn-secondary" onclick="Activities.closeCreateModal()">Cancel</button>
+                    <button type="submit" id="submitActBtn" class="btn-primary">Publish Activity</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal 2: Trust Warning Modal -->
+    <div id="trustWarningModal" class="modal-overlay">
+        <div class="modal-box" style="text-align: center;">
+            <div style="font-size: 3rem; margin-bottom: 0.5rem;">🔒</div>
+            <h3 style="font-size: 1.35rem; font-weight: 800; color: #991b1b; margin-bottom: 0.5rem;">
+                Trust Score Requirement Not Met
+            </h3>
+            <p style="font-size: 0.95rem; color: #475569; margin-bottom: 1.25rem;">
+                The organizer set a minimum Trust Score of <strong id="tw_reqScore" style="color: #991b1b;">70</strong> for this activity. 
+                Your current Dynamic Trust Score is <strong id="tw_userScore" style="color: #4f46e5;">50</strong>.
+            </p>
+            
+            <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 1rem; text-align: left; font-size: 0.85rem; color: #334155; margin-bottom: 1.5rem;">
+                <strong>💡 How to boost your Trust Score:</strong>
+                <ul style="margin-left: 1.2rem; margin-top: 0.4rem;">
+                    <li>Complete the GPS Location & Identity verification survey (+35 pts).</li>
+                    <li>Attend open community activities and arrive punctually (+5 pts per meetup).</li>
+                    <li>Receive positive peer feedback and ratings from companions (+30 pts).</li>
+                </ul>
+            </div>
+
+            <button class="btn-primary" onclick="App.closeTrustWarningModal(); App.switchTab('verify')">
+                Boost Score in Verification Survey →
+            </button>
+        </div>
+    </div>
+
+    <!-- Modal 3: Post-Activity Peer Review & Vouch Modal -->
+    <div id="peerReviewModal" class="modal-overlay">
+        <div class="modal-box">
+            <button class="modal-close-btn" onclick="Trust.closePeerReviewModal()">✕</button>
+            <h3 style="font-size: 1.3rem; font-weight: 800; color: #1e1b4b; margin-bottom: 0.35rem;">
+                Rate & Vouch for <span id="pr_targetUserName" style="color: var(--primary);">Companion</span>
+            </h3>
+            <p style="font-size: 0.85rem; color: #64748b; margin-bottom: 1.25rem;">
+                Your honest feedback directly recalibrates their Dynamic Trust Score in real-time.
+            </p>
+
+            <form onsubmit="Trust.handleReviewSubmit(event)">
+                <input type="hidden" id="pr_targetUserId">
+
+                <div style="display: flex; flex-direction: column; gap: 1rem;">
+                    <div>
+                        <label style="font-size: 0.85rem; font-weight: 600;">Overall Rating (1 - 5 Stars)</label>
+                        <select id="pr_rating" class="form-input">
+                            <option value="5.0">★★★★★ 5.0 (Exceptional companion)</option>
+                            <option value="4.0">★★★★☆ 4.0 (Good & reliable)</option>
+                            <option value="3.0">★★★☆☆ 3.0 (Average)</option>
+                            <option value="2.0">★★☆☆☆ 2.0 (Below expectations)</option>
+                            <option value="1.0">★☆☆☆☆ 1.0 (Unreliable or problematic)</option>
+                        </select>
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.5rem;">
+                        <div>
+                            <label style="font-size: 0.8rem; font-weight: 600;">⏱️ Punctuality</label>
+                            <select id="pr_punctuality" class="form-input">
+                                <option value="5">5/5 (Early/On time)</option>
+                                <option value="4">4/5</option>
+                                <option value="3">3/5</option>
+                                <option value="2">2/5</option>
+                                <option value="1">1/5 (Late)</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label style="font-size: 0.8rem; font-weight: 600;">🤝 Friendliness</label>
+                            <select id="pr_friendliness" class="form-input">
+                                <option value="5">5/5 (Welcoming)</option>
+                                <option value="4">4/5</option>
+                                <option value="3">3/5</option>
+                                <option value="2">2/5</option>
+                                <option value="1">1/5</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label style="font-size: 0.8rem; font-weight: 600;">🛡️ Safety</label>
+                            <select id="pr_safety" class="form-input">
+                                <option value="5">5/5 (100% Safe)</option>
+                                <option value="4">4/5</option>
+                                <option value="3">3/5</option>
+                                <option value="2">2/5</option>
+                                <option value="1">1/5</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label style="font-size: 0.85rem; font-weight: 600;">Award Endorsement Badge (Optional)</label>
+                        <select id="pr_badge" class="form-input">
+                            <option value="Top Punctual">⏱️ Top Punctual</option>
+                            <option value="Great Teammate" selected>🤝 Great Teammate</option>
+                            <option value="Focused Mind">📚 Focused Mind</option>
+                            <option value="Certified Explorer">🥾 Certified Explorer</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label style="font-size: 0.85rem; font-weight: 600;">Written Vouch / Feedback</label>
+                        <textarea id="pr_feedback" class="form-input" rows="2" placeholder="Share a few words about your meetup experience with this member..." required>Super friendly, punctual, and great energy during the meetup!</textarea>
+                    </div>
+                </div>
+
+                <div style="display: flex; justify-content: flex-end; gap: 0.75rem; margin-top: 1.5rem;">
+                    <button type="button" class="btn-secondary" onclick="Trust.closePeerReviewModal()">Cancel</button>
+                    <button type="submit" class="btn-primary">Submit Verified Review</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal 4: Report Suspicious Member / Safety Flag -->
+    <div id="reportModal" class="modal-overlay">
+        <div class="modal-box">
+            <button class="modal-close-btn" onclick="Safety.closeReportModal()">✕</button>
+            <h3 style="font-size: 1.3rem; font-weight: 800; color: #b91c1c; margin-bottom: 0.35rem;">
+                Report Profile to AI Safety Layer
+            </h3>
+            <p style="font-size: 0.85rem; color: #64748b; margin-bottom: 1.25rem;">
+                Reporting member: <strong id="rep_userName" style="color: #0f172a;"></strong>. Our AI Safety Sentinel will analyze this report and apply credibility deductions.
+            </p>
+
+            <form onsubmit="Safety.handleReportSubmit(event)">
+                <input type="hidden" id="rep_userId">
+
+                <div style="display: flex; flex-direction: column; gap: 0.9rem;">
+                    <div>
+                        <label style="font-size: 0.85rem; font-weight: 600;">Incident Category</label>
+                        <select class="form-input">
+                            <option>No-show without notice</option>
+                            <option>Inappropriate or disrespectful behavior</option>
+                            <option>Suspicious commercial / financial pitch</option>
+                            <option>Identity mismatch / impersonation</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label style="font-size: 0.85rem; font-weight: 600;">Incident Details</label>
+                        <textarea id="rep_reason" class="form-input" rows="3" placeholder="Provide factual details of what occurred..." required></textarea>
+                    </div>
+                </div>
+
+                <div style="display: flex; justify-content: flex-end; gap: 0.75rem; margin-top: 1.5rem;">
+                    <button type="button" class="btn-secondary" onclick="Safety.closeReportModal()">Cancel</button>
+                    <button type="submit" class="btn-primary" style="background: #dc2626;">Submit Incident Report</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Toast Notification Banner -->
+    <div id="toastMsg" class="toast-msg"></div>
+
+    <!-- Script imports -->
+    <script src="js/api.js"></script>
+    <script src="js/verification-form.js"></script>
+    <script src="js/activities.js"></script>
+    <script src="js/scheduled.js"></script>
+    <script src="js/matchmaker.js"></script>
+    <script src="js/trust.js"></script>
+    <script src="js/safety.js"></script>
+    <script src="js/app.js"></script>
+
+</body>
+</html>
